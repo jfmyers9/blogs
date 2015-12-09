@@ -69,8 +69,11 @@ Therefore, we decided to chose 100 cells (10000 instances when saturated) as our
 ### The Tests
 
 Now knowing how large a deployment we wanted to deploy, and the manner in which we wanted to test it, we were able to create two basic test suites, [fezzik](https://github.com/cloudfoundry-incubator/fezzik) and the [stress tests](https://github.com/cloudfoundry-incubator/diego-stress-tests).
+
 Fezzik is a small test suite operating only within Diego which will spin up a large number of Tasks and LRPs proportional to the size of the environment, verify that they all run successfully, and then tear the entire work load down.
+
 The Stress Tests are a more wholistic test suite which will use the Cloud Foundry cli to push a large number of diversified applications to saturate a Diego deployment so that we can observe the entire system under a large load for an extended period of time.
+The Stress Tests also give us an opportunity to inspect an environment under load during failure conditions (loss of cells, database failures, etc) and assert that when service returns the environment will return to a stable state.
 
 ### Measuring Performance
 
@@ -95,8 +98,8 @@ Before running the performance tests, we identified aspects of Diego that were i
   
 ## 10 Cell Experiment
 
-Before moving straight to running 100 cells, we ran our performance suite against a smaller 10 cell deployment in order to validate our process and identify any obvious performance issues throughout the system.
-Immediately after running fezzik for the first time we noticed two initial problems:
+Before running our performance tests at the desired deployment size of 100 cells, we decided to run our performance suite against a smaller 10 cell deployment in order to establish confidence in our process and to identify any obvious performance degradations.
+After our initial runs of fezzik, we discovered two immediate performance problems:
 
 - The recommended size of our database VM was too small. We moved to using `m3.large` AWS instances as a result.
 - The TLS configuration on our BBS server and clients were incorrect. We introduced a `ClientSessionCache` on our TLS client and Server in order to cache TLS connections and improve overall TLS performance. 
