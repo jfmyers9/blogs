@@ -102,7 +102,7 @@ Before running our performance tests at the desired deployment size of 100 cells
 After our initial runs of fezzik, we discovered two immediate performance problems:
 
 - The recommended size of our database VM was too small. We moved to using `m3.large` AWS instances as a result.
-- The TLS configuration on our BBS server and clients were incorrect. We introduced a `ClientSessionCache` on our TLS client and Server in order to cache TLS connections and improve overall TLS performance. 
+- The TLS configuration on our BBS server and clients were incorrect. We introduced a `ClientSessionCache` on our TLS client and Server in order to cache TLS connections and improve overall TLS performance.
 
 Our stress tests ran with little to no problems and successfully passed all of the failure condidtions that we placed upon the system.
 The results from the 10 cell experiment were promising and allowed us to iron out simple performance issues with both the test and the system itself.
@@ -120,3 +120,5 @@ In order to combat this, we decided to up the size of the database VM one more t
 We had been expecting to make this change as we knew that having only one active BBS would force us to scale the size of the database VM with the size of the deployment.
 
 Once we had correctly adjusted the size of the database VM to match the scale of the 100 cell deployment, we began to experience stable fezzik runs.
+
+![4000 Tasks by Start Time](https://github.com/jfmyers9/blogs/raw/master/diego-perf/images/4k-tasks-by-start-time.png "4000 Tasks by Start Time")
