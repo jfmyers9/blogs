@@ -137,7 +137,7 @@ After increasing this value to the number of cores available on the VM, we were 
 
 Looking at the lifecycle of four thousand tasks ordered by end time gives a different perspective on the experiment.
 
-[ INSERT IMAGE ORDERED BY END TIME ]
+![4000 Tasks by End Time](https://github.com/jfmyers9/blogs/raw/master/diego-perf/images/4k-tasks-by-end-time.png "4000 Tasks by End Time")
 
 From here we can see that during this fezzik run there appears to be a bottleneck in the beginning with the light green band on the left.
 After some investigation, we determined that this was due to the size of the task callback work pool, which at the time was set to only 20 workers.
