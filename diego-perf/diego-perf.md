@@ -79,7 +79,7 @@ The Stress Tests also give us an opportunity to inspect an environment under loa
 
 In order to measure the state of the system during the performance tests, we used the following tools:
 - A [Datadog dashboard](https://github.com/pivotal-cf-experimental/datadog-config-oss/blob/master/dashboard_templates/shared/diego_health_screen.json.erb) to monitor important metrics reported by the system in real time.
-- [Cicerone](https://github.com/cloudfoundry-incubator/cicerone), a tool which consumes application logs to generate timelines and graphs of various resources throughout the system.
+- [Cicerone](https://github.com/cloudfoundry-incubator/cicerone), a tool which consumes application logs written by [lager](https://github.com/pivotal-golang/lager) to generate timelines and graphs of various resources throughout the system.
 - `go pprof` to profile both memory and CPU performance of various components.
 
 With these tools we are able to determine where in the system we have performance issues, and get a more granular view at how performant Diego actually is.
@@ -121,4 +121,29 @@ We had been expecting to make this change as we knew that having only one active
 
 Once we had correctly adjusted the size of the database VM to match the scale of the 100 cell deployment, we began to experience stable fezzik runs.
 
+#### 4k Tasks
+
 ![4000 Tasks by Start Time](https://github.com/jfmyers9/blogs/raw/master/diego-perf/images/4k-tasks-by-start-time.png "4000 Tasks by Start Time")
+
+The above graph shows the lifecycle of 4000 Tasks in Diego.
+Each bar represents one distinct task, and each color represents a different phase of its lifecycle.
+From this graph, we can see that Diego was able to successfully persist, run, and finish four thousand tasks in under 30 seconds on 100 cells.
+The large majority of tasks were completed within under 20 seconds, while a small number of outliers took slightly longer.
+
+One interesting pattern is the time it takes for 4000 tasks to be persisted into the BBS.
+We see that the last task's creation request is not processed until about 3-4 seconds into the experiment.
+After some investigation, we discovered that the `GOMAXPROCS` environment variable was not being set correctly for the BBS process.
+After increasing this value to the number of cores available on the VM, we were able to process and begin persisting all 4000 tasks in less than 1.5 seconds.
+
+Looking at the lifecycle of four thousand tasks ordered by end time gives a different perspective on the experiment.
+
+[ INSERT IMAGE ORDERED BY END TIME ]
+
+From here we can see that during this fezzik run there appears to be a bottleneck in the beginning with the light green band on the left.
+After some investigation, we determined that this was due to the size of the task callback work pool, which at the time was set to only 20 workers.
+We were able to eliminate this bottleneck by increasing the number of workers to a much larger number, resulted in almost no time being spent in at this point in the task lifecycle.
+
+Another interesting pattern is that a large majority of the time is spent in the turquoise color band, which corresponds to time spent being created in [Garden](https://github.com/cloudfoundry-incubator/garden-linux-release).
+Thus from Diego's perspective, we had 4000 tasks scheduled and being created in garden in under 5 seconds!
+
+Overall the results from the four thousand task test in fezzik were extremely promising. Besides slow garden container creation performance, and two slight bottlenecks in the BBS, we were able to schedule, run, and complete a large number of tasks on 100 cells in almost no time at all.
