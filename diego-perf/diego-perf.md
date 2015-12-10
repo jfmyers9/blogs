@@ -77,6 +77,8 @@ Each type of application that is pushed puts a varying amount of load on the sys
 An application that crashes constantly is also pushed as part of the stress test to replicate a realistic deployment in which not every application that is pushed works.
 The Stress Tests also allow us to inspect an environment under load during failure conditions (loss of cells, database failures, etc) and assert that when service returns the environment will return to a stable state.
 
+A more detailed explanation of the reasoning and specifics behind our performance tests can be found in our [diego development notes](https://github.com/cloudfoundry-incubator/diego-dev-notes/blob/master/proposals/measuring_performance.md).
+
 ### Measuring Performance
 
 In order to measure the state of the system during the performance tests, we used the following tools:
@@ -85,8 +87,6 @@ In order to measure the state of the system during the performance tests, we use
 - `go pprof` to profile both memory and CPU performance of various components.
 
 With these tools we are able to determine where in the system we have performance issues, and get a more granular view at how performant Diego actually is.
-
-A more detailed explanation of the reasoning and specifics behind our performance tests can be found in our [diego development notes](https://github.com/cloudfoundry-incubator/diego-dev-notes/blob/master/proposals/measuring_performance.md).
 
 ### Areas of Interest
 
@@ -240,3 +240,64 @@ However, we found that there are two parameters that operators can tune in order
 These two values are `heartbeat-interval` and `election-timeout`.
 Increasing the `heartbeat-interval` and `election-timeout` values from `50 ms` and `1000 ms` to `200 ms` and `2000 ms` respectively did slow down this increase in ETCD raft term.
 While it did not completely stop the ETCD leader elections, it did help alleviate the problem.
+
+#### Conclusions
+
+Diego can run a lot of stuff for an extended period of time.
+Besides leader elections in ETCD, we saw no performance degradation in a Diego deployment under heavy load.
+
+### Fault Tolerance
+
+For our final experiment, we wanted to see how a Diego deployment under load performs under both partial and total failure.
+
+#### Killing Cells
+
+In order to simulate a partial failure, we killed 10 random cells in the deployment.
+First we observed the memory capacity of the remaining cells.
+
+[ INSERT GRAPH OF CELL MEMORY CAPACITY AFTER CELL FAILURE HERE ]
+
+The destroyed cells immediately stopped reporting their capacity, and then we see the remaining capacity slowly diminish as the missing LRPs are redistributed across the remaining cells.
+Killing 10 cells left the system with less capacity than was necessary to run the entire work load that was desired.
+The graph of total LRPs in the system tells a similar story.
+
+[ INSERT GRAPH OF LRPS AFTER CELL FAILURE HERE ]
+
+As expected, we initially saw that the number of running instances drops slightly to reflect the loss of these cells.
+In a short amount of time, the a large number of the previously running LRPs are restored, completely filling up all of the available space in the deployment.
+This also results in the number of crashing LRPs decreasing over time as the system is no longer able to schedule them do to resource constraints.
+
+The partial effect had no effect on the duration of any of the bulk loops in the system, and the BBS request latency stayed constant throughout the partial failure.
+Thus after a partial failure, we are able to recover missing LRPs in about 2 minutes as shown by the graphs above.
+
+#### Killing Database VMs
+
+Killing all of the Database VMs results in a catastrophic outage in a Diego deployment.
+We expect during this outage to see running instances maintain routability, however no new instances should be able to be created.
+On restoration of the Database VMs, we expect to see the system return to its stable state in a short period of time.
+
+During this experiment we noticed two concerning issues:
+- A large number of the routes dropped off during the outage. We discovered that we were not respecting the "freshness" of the CF domain during the Route Emitter's bulk loop. This essentially means that the Route Emitter was taking destructive actions on an incomplete dataset.
+- On restoration of the Database VM it took about 15 minutes for all LRPs to be re-persisted into ETCD. We noticed that the CPU usage on the CC Bridge VMs was extremely high during these 15 minutes. Profiling the CC Bridge processes showed us that a large majority of time was being spent generating RSA keypairs for the SSH routes.
+
+In order to mitigate these issues in future major outages, we have changed the Route Emitter to respect the "freshness" of the CF domain, and recommended that the CC Bridge VM be run on a larger VM, similar to that of the Database VM.
+
+With both of these changes, we no longer see routing loss during major outages, and the on recovery, the entire persistence layer is restored in less than 4 minutes.
+
+#### Conclusions
+
+Diego is extremely fault tolerant as a system.
+In both a major and partial outage, Diego stabilizes quickly and maintains routability to running instances throughout the outage.
+
+## Final Thoughts
+
+Running these performance tests gave us a great deal of confidence in Diego.
+It gave us an opportunity to improve performance in a good number of components.
+As of [Diego Release v0.1434.0](https://github.com/cloudfoundry-incubator/diego-release/tree/v0.1434.0) we have announced Diego to be Generally Available.
+It is only a matter of time before Diego becomes the official backend of Cloud Foundry.
+
+Our next steps are to find ways to test aspects of the system at a greater scale without the burden of running deployments at such a great scale.
+To solve this we have begun work on a set of [benchmark tests](https://github.com/cloudfoundry-incubator/benchmark-bbs) which will load test our Database VM at a higher level of load than we were able to create in the 100 cell deployment.
+We have also created load tests for Garden-Linux to help us identify performance issues in garden container creation.
+All of these new test suites are being incorporated into our continuous integration systems, so that we can ensure that Diego's performance does not degrade over time.
+With the creation of these new performance suites, we should be able to have confidence in Diego at a scale of 1000+ cells.
