@@ -12,8 +12,10 @@ As the backend to Cloud Foundry, it is tasked with running large amounts of proc
 Diego also actively monitors the health of its running work load, restarting crashed/exited process and maintaining consistency across all nodes.
 
 The work load on Diego can be classified into two distinct categories: Tasks and Long Running Processes (LRPs).
+Tasks are one-off processes that are run to return a result to the user. i.e. Staging an applicaition on Cloud Foundry in order to produce a executable droplet.
+LRPs are processes which generally do not exit unless due to failures. i.e. Running an application on Cloud Foundry such as a web server. 
 
-Architecturally, Diego is made up of a few core components:
+Architecturally, Diego consists of a few major components:
 
 ### Cell
 
@@ -50,6 +52,7 @@ In order to replace the original backend of Cloud Foundry, we needed to be confi
 
 - Run a lot of stuff fast.
 - Run a lot of stuff for a long time.
+- Continue to run a lot of stuff despite system failures
 
 ### How much is "a lot"
 
@@ -113,6 +116,8 @@ The results from the 10 cell experiment were promising and allowed us to iron ou
 
 With the process for running the stress tests ironed out, and success at the 10 cell deployment, we began testing our 100 cell deployment with fezzik.
 
+*Note*: Garden Linux performance is poorly reflected in the following figures and experiments. This is due to the use of btrfs as the backing file store. As of today, Garden Linux is now using AuFS as a backing file store, and container creation times are much more performant.wo
+
 ### Fezzik
 
 Initial runs of fezzik against the 100 cell deployment were plagued with some slight irregularities.
@@ -142,7 +147,7 @@ Looking at the lifecycle of four thousand tasks ordered by end time gives a diff
 ![4000 Tasks by End Time](https://github.com/jfmyers9/blogs/raw/master/diego-perf/images/4k-tasks-by-end-time.png "4000 Tasks by End Time")
 
 From here we can see that during this fezzik run there appears to be a bottleneck in the beginning with the light green band on the left.
-After some investigation, we determined that this was due to the size of the task callback work pool, which at the time was set to only 20 workers.
+After some investigation, we determined that this was due to the size of the task callback workpool<sup>[1](#workpool-footnote)</sup>, which at the time was set to only 20 workers.
 We were able to eliminate this bottleneck by increasing the number of workers to a much larger number, resulted in almost no time being spent in at this point in the task lifecycle.
 
 Another interesting pattern is that a large majority of the time is spent in the turquoise color band, which corresponds to time spent being created in [Garden](https://github.com/cloudfoundry-incubator/garden-linux-release).
@@ -177,7 +182,7 @@ After increasing both the create and delete workpools for actual LRPs, we saw th
 
 #### Conclusions
 
-Diego can run a lot of stuff in not a lot of time.
+Diego can schedule and run a lot of stuff in not a lot of time.
 
 Besides minor complications such as the size of workpools and the size of the machine running the BBS, we did not see any major performance issues with Diego throughout the fezzik experiment.
 Fezzik also drove us to expose the size of these workpools as configuration values, so that operators can properly tune them to the respective size of their environment and the load that they are expecting.
@@ -300,4 +305,7 @@ Our next steps are to find ways to test aspects of the system at a greater scale
 To solve this we have begun work on a set of [benchmark tests](https://github.com/cloudfoundry-incubator/benchmark-bbs) which will load test our Database VM at a higher level of load than we were able to create in the 100 cell deployment.
 We have also created load tests for Garden-Linux to help us identify performance issues in garden container creation.
 All of these new test suites are being incorporated into our continuous integration systems, so that we can ensure that Diego's performance does not degrade over time.
-With the creation of these new performance suites, we should be able to have confidence in Diego at a scale of 1000+ cells.
+With the creation of these new performance suites, we should be able to have confidence in Diego at a scale of 1000+ cells in no time at all.
+
+# Footnotes
+<a name="workpool-footnote">1</a>: Workpools are a concurrency management tool used by Diego. Essentially, each workpool has an allocated number of workers and will perform work submitted to it. They are used to control the amount of concurrency introduced to a system under load.
