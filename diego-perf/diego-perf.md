@@ -72,8 +72,10 @@ Now knowing how large a deployment we wanted to deploy, and the manner in which 
 
 Fezzik is a small test suite operating only within Diego which will spin up a large number of Tasks and LRP instances proportional to the size of the environment, verify that they all run successfully, and then tear the entire work load down.
 
-The Stress Tests are a more wholistic test suite which will use the Cloud Foundry cli to push a large number of diversified applications to saturate a Diego deployment so that we can observe the entire system under a large load for an extended period of time.
-The Stress Tests also give us an opportunity to inspect an environment under load during failure conditions (loss of cells, database failures, etc) and assert that when service returns the environment will return to a stable state.
+The Stress Tests are a more wholistic test suite which will use the [cf cli](https://github.com/cloudfoundry/cli) to push a large number of diversified applications to saturate a Diego deployment so that we can observe the entire system under a large load for an extended period of time.
+Each type of application that is pushed puts a varying amount of load on the system by logging at different rates.
+An application that crashes constantly is also pushed as part of the stress test to replicate a realistic deployment in which not every application that is pushed works.
+The Stress Tests also allow us to inspect an environment under load during failure conditions (loss of cells, database failures, etc) and assert that when service returns the environment will return to a stable state.
 
 ### Measuring Performance
 
@@ -176,7 +178,68 @@ After increasing both the create and delete workpools for actual LRPs, we saw th
 #### Conclusions
 
 Diego can run a lot of stuff in not a lot of time.
+
 Besides minor complications such as the size of workpools and the size of the machine running the BBS, we did not see any major performance issues with Diego throughout the fezzik experiment.
 Fezzik also drove us to expose the size of these workpools as configuration values, so that operators can properly tune them to the respective size of their environment and the load that they are expecting.
 
 ### Stress Tests
+
+We now need to prove that Diego can run a lot of stuff for an extended period of time.
+
+The stress tests for a 100 cell deployment will create and run about 9.7k instances to Diego.
+The initial round of CF application pushes were very successful from Diego's perspective.
+We did not experience one failure from Diego's perspective.
+
+[ INSERT GRAPH OF LRPs INCREASING UP TO 9.6K INSTANCES ]
+
+The above graph shows the number of LRPs reported by Diego over time.
+// TODO PLEASE EXPLAIN THE COLORS OF THE LINES
+Note that the plataeu at about 8.6k instances was due to instances failing to start due to a backup at [Cloud Controller](https://github.com/cloudfoundry/cloud_controller_ng) uploading the application bits to the blobstore.
+Once we had transfered every application to the `STARTED` state, we see the number of total instances reach the expected 9.7k value.
+
+[ INSERT GRAPH OF CELL MEMORY CAPACITY OVER TIME ]
+
+As expected, the available memory capacity of the 100 cells decreases over time as we saturate the deployment.
+We intend to leave a small amount of space available so that during the failure tests we can successfully evacuate a good percentage of the cells successfully.
+
+Once the environment is saturated, we checked the performance of our areas of interest highlighted above:
+
+#### BBS Request Latency
+
+[ INSERT GRAPH OF BBS REQUEST LATENCY OVER TIME ]
+
+#### Cell Convergence Duration
+
+[ INSERT GRAPH OF CELL CONVERGENCE DURATION OVER TIME ]
+
+#### Route Emitter Bulk Duration
+
+[ INSERT GRAPH OF ROUTE EMITTER BULK DURATION OVER TIME ]
+
+#### Rep Bulk Loop Duration
+
+[ INSERT GRAPH OF REP BULK LOOP DURATION ]
+
+For every metric above we notice a similar pattern.
+Each metric increased slightly over time as the environment became saturated and eventually stabilizes at an acceptable value with little variance over time.
+Thus in a completely saturated environment, we did not notice any processes fail to scale with the load of the environment.
+
+#### ETCD Performance
+
+One area however that we did see issues with was the ETCD backing store used by the BBS.
+
+[ INSERT GRAPH OF ETCD RAFT TERM OVER TIME ]
+
+In the above graph we see that the ETCD raft term increased greatly as the store became saturated with records.
+This is troubling as ETCD leader elections can cause failed writes and data access issues.
+
+First we tried to upgrade ETCD from v2.1.2 up to v2.2.0.
+This did not show any signs of improvement.
+
+However, we found that there are two parameters that operators can tune in order to slow down this increase in raft term.
+These two values are `heartbeat-interval` and `election-timeout`.
+
+[ INSERT GRAPH OF ETCD RAFT TERM AFTER TUNING PARAMETERS ]
+
+Increasing the `heartbeat-interval` and `election-timeout` values from `50 ms` and `1000 ms` to `200 ms` and `2000 ms` respectively did slow down this increase in ETCD raft term.
+While it did not completely stop the ETCD leader elections, it did help alleviate the problem.
