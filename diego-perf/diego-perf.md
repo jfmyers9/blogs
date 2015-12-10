@@ -190,14 +190,14 @@ The stress tests for a 100 cell deployment will create and run about 9.7k instan
 The initial round of CF application pushes were very successful from Diego's perspective.
 We did not experience one failure from Diego's perspective.
 
-[ INSERT GRAPH OF LRPs INCREASING UP TO 9.6K INSTANCES ]
+![Stress Test LRP Instances](https://github.com/jfmyers9/blogs/raw/master/diego-perf/images/stress-test-lrps.png "Stress Test LRPs")
 
 The above graph shows the number of LRPs reported by Diego over time.
-// TODO PLEASE EXPLAIN THE COLORS OF THE LINES
+The dark blue line represents desired LRPs, the light blue line represents running LRPs, and the purple line represents crashing LRPs.
 Note that the plataeu at about 8.6k instances was due to instances failing to start due to a backup at [Cloud Controller](https://github.com/cloudfoundry/cloud_controller_ng) uploading the application bits to the blobstore.
 Once we had transfered every application to the `STARTED` state, we see the number of total instances reach the expected 9.7k value.
 
-[ INSERT GRAPH OF CELL MEMORY CAPACITY OVER TIME ]
+![Stress Test Cell Memory Capacity](https://github.com/jfmyers9/blogs/raw/master/diego-perf/images/stress-test-cell-memory.png "Stress Cell Memory Capacity")
 
 As expected, the available memory capacity of the 100 cells decreases over time as we saturate the deployment.
 We intend to leave a small amount of space available so that during the failure tests we can successfully evacuate a good percentage of the cells successfully.
@@ -206,19 +206,19 @@ Once the environment is saturated, we checked the performance of our areas of in
 
 #### BBS Request Latency
 
-[ INSERT GRAPH OF BBS REQUEST LATENCY OVER TIME ]
+![Stress Test BBS Latency](https://github.com/jfmyers9/blogs/raw/master/diego-perf/images/stress-test-bbs-latency.png "Stress BBS Latency")
 
 #### Cell Convergence Duration
 
-[ INSERT GRAPH OF CELL CONVERGENCE DURATION OVER TIME ]
+![Stress Test Convergence Duration](https://github.com/jfmyers9/blogs/raw/master/diego-perf/images/stress-test-converge-duration.png "Stress Convergence Duration")
 
 #### Route Emitter Bulk Duration
 
-[ INSERT GRAPH OF ROUTE EMITTER BULK DURATION OVER TIME ]
+![Stress Test Route Emitter Bulk Duration](https://github.com/jfmyers9/blogs/raw/master/diego-perf/images/stress-test-route-emitter-bulk-duration.png "Stress Route Emitter Bulk Duration")
 
 #### Rep Bulk Loop Duration
 
-[ INSERT GRAPH OF REP BULK LOOP DURATION ]
+![Stress Test Rep Bulk Loop Duration](https://github.com/jfmyers9/blogs/raw/master/diego-perf/images/stress-test-rep-bulk-duration.png "Stress Test Rep Bulk Loop Duration")
 
 For every metric above we notice a similar pattern.
 Each metric increased slightly over time as the environment became saturated and eventually stabilizes at an acceptable value with little variance over time.
@@ -228,7 +228,7 @@ Thus in a completely saturated environment, we did not notice any processes fail
 
 One area however that we did see issues with was the ETCD backing store used by the BBS.
 
-[ INSERT GRAPH OF ETCD RAFT TERM OVER TIME ]
+![Stress Test ETCD Raft Term](https://github.com/jfmyers9/blogs/raw/master/diego-perf/images/stress-test-etcd-raft-term-before-tuning.png "Stress Test ETCD Raft Term")
 
 In the above graph we see that the ETCD raft term increased greatly as the store became saturated with records.
 This is troubling as ETCD leader elections can cause failed writes and data access issues.
@@ -238,8 +238,5 @@ This did not show any signs of improvement.
 
 However, we found that there are two parameters that operators can tune in order to slow down this increase in raft term.
 These two values are `heartbeat-interval` and `election-timeout`.
-
-[ INSERT GRAPH OF ETCD RAFT TERM AFTER TUNING PARAMETERS ]
-
 Increasing the `heartbeat-interval` and `election-timeout` values from `50 ms` and `1000 ms` to `200 ms` and `2000 ms` respectively did slow down this increase in ETCD raft term.
 While it did not completely stop the ETCD leader elections, it did help alleviate the problem.
