@@ -255,13 +255,13 @@ For our final experiment, we wanted to see how a Diego deployment under load per
 In order to simulate a partial failure, we killed 10 random cells in the deployment.
 First we observed the memory capacity of the remaining cells.
 
-![Killing Cells Memory Capacity](https://github.com/jfmyers9/blogs/raw/master/diego-perf/images/stress-test-killing-cells-memory-capacity.png "Killing Cells Memory Capacity")
+![Killing Cells Memory Capacity](https://github.com/jfmyers9/blogs/raw/master/diego-perf/images/stress-tests-killing-cells-memory-capacity.png "Killing Cells Memory Capacity")
 
 The destroyed cells immediately stopped reporting their capacity, and then we see the remaining capacity slowly diminish as the missing LRPs are redistributed across the remaining cells.
 Killing 10 cells left the system with less capacity than was necessary to run the entire work load that was desired.
 The graph of total LRPs in the system tells a similar story.
 
-![Killing Cells LRPs](https://github.com/jfmyers9/blogs/raw/master/diego-perf/images/stress-test-killing-cells-lrps.png "Killing Cells LRPs")
+![Killing Cells LRPs](https://github.com/jfmyers9/blogs/raw/master/diego-perf/images/stress-tests-killing-cells-lrps.png "Killing Cells LRPs")
 
 As expected, we initially saw that the number of running instances drops slightly to reflect the loss of these cells.
 In a short amount of time, the a large number of the previously running LRPs are restored, completely filling up all of the available space in the deployment.
