@@ -56,12 +56,13 @@ In order to replace the original backend of Cloud Foundry, we needed to be confi
 
 ### How much is "a lot"
 
-```
-a·lot
-/ā lät/
-  adjective
-  The amount of long running processes it takes to saturate 100 Diego cells
-```
+<div style="margin-bottom:20px;padding:20px;box-shadow:0px 1px 4px 0px rgba(0,0,0,0.4);">
+  <span style="font-size: 18px;font-weight:bold;">a·lot</span><br />
+  <span style="font-size: 14px;">/ā lät/</span><br />
+  <em style="font-size: 16px;">adjective</em><br />
+  &nbsp;&nbsp;&nbsp;&nbsp;<strong>1. </strong>The amount of long running processes it takes to saturate 100 Diego cells
+</div>
+
 
 In order to properly test the performance of Diego at scale, we have to determine what size of deployment we are trying to support.
 Currently Cloud Foundry deployments can range anywhere from a local bosh-lite deployment fit to run a small number of test applications to large scale production environments running tens of thousands of applications.
