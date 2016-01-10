@@ -23,4 +23,21 @@ LRPs are processes which generally do not exit unless due to failures. i.e. Runn
 
 ## Measuring Performance
 
+In order to accurately measure the results of our performance tests, we first need to define the characteristics of a performant Diego deployment.
+From our experience with production scale Cloud Foundry deployments, we know that Diego must be able to:
 
+- Run a lot of stuff fast.
+- Run a lot of stuff for a long period of time.
+- Run a lot of stuff successfully despite partial and total system failure.
+
+From these performance requirements, we developed a few metrics that will provide us insight into the state of a Cloud Foundry deployment under stress.
+
+- Task and LRP lifecycle timelines generated from logs.
+  Lifecycle timelines offer us a top level view of performance, allowing us to characterize where time was spent during the test.
+- API response latency and success rate
+  The API performance of our master database node is critical to the health of a deployment.
+  These metrics will allow us to validate that the API is consitently available and performant.
+- Bulk operating loop durations
+  The duration of these bulk processing loops demonstrate the systems ability to maintain a consistent state.
+- Total number of available routes
+  The routability of the deployment is a key metric which reflects the impact on the experience of the end user.
