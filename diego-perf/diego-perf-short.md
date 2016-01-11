@@ -43,3 +43,15 @@ From these performance requirements, we developed a set of metrics that will pro
   The routability of the deployment is a key metric which reflects the impact on the experience of the end user.
 
 ## Performance Tests
+
+From our performance requirements above, we developed two testing strategies to test the performance of Diego:
+
+- Spin up a large work load as fast as possible, and then tear it down.
+- Start enough applications on Diego to fill capacity and measure the performance over time.
+
+For our deployment under test, we wanted to replicate a larger scaler Diego deployment.
+Thus, we deployed a 100 node environment on AWS, using `m3.2xlarge` for each cell node, and a `c4.4xlarge` for the database node.
+
+## Results
+
+
