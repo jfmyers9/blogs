@@ -65,11 +65,12 @@ Please note, that the large bulk of time spent in these experiments was during c
 
 The stress tests allowed us to examine the performance of the API and bulk processing loops:
 
-[ Graphs BBS Latency and Failure rate ]
+![Number of LRPs Stress Tests](https://github.com/jfmyers9/blogs/raw/master/diego-perf/images/num-lrps-stress.png "Number of LRPs Stress Tests")
+![BBS Latency](https://github.com/jfmyers9/blogs/raw/master/diego-perf/images/bbs-latency.png "BBS Latency")
 
 From the above, we can determine that the latency of requests to our single master database node increased slightly as the environment was filled, and then stabilizes at a value much less than 1 second per request.
 
-[ Graphs of Bulk Processing Loop Durations ]
+![Bulk Loop Durations](https://github.com/jfmyers9/blogs/raw/master/diego-perf/images/bulk-loop-durations.png "Bulk Loop Durations")
 
 We also see a very similar pattern for all of the bulk processing loops.
 They all increase slightly, from their base values in an empty deployment, to reasonable values that are much less than the interval at which they are run.
