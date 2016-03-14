@@ -57,8 +57,11 @@ Thus, we deployed a 100 node environment on AWS, using `m3.2xlarge` with 250GB o
 
 From Fezzik, we were able to generate the following figures:
 
-[ Graphs showing results from 4k Tasks + 4k LRPs Fezzik ]
+![4000 LRP Lifecycles](https://github.com/jfmyers9/blogs/raw/master/diego-perf/images/4k-lrps.png "4000 LRP Lifecycles")
+![4000 Task Lifecycles](https://github.com/jfmyers9/blogs/raw/master/diego-perf/images/4k-tasks.png "4000 Task Lifecycles")
 
+The above graphs show the lifecycles of the 4000 desired tasks and lrps as a part of our Fezzik test suite.
+The graphs were generated from post-processing of logs from the Diego deployment, and each band of color represents a different segment of a Task or LRP's lifecycle.
 From the above, we see that a 100 node Diego deployment successfully handled large, bursty workloads in a reasonable amount of time.
 More specifically, Diego was able to successfully persist, schedule, run, and complete 4000 tasks and long running processes in a little under 40 seconds.
 Please note, that the large bulk of time spent in these experiments was during container creation. We have since determined that this was a side effect of our choice of backing file system, and have improved container creation times drastically in future releases.
@@ -75,15 +78,15 @@ From the above, we can determine that the latency of requests to our single mast
 We also see a very similar pattern for all of the bulk processing loops.
 They all increase slightly, from their base values in an empty deployment, to reasonable values that are much less than the interval at which they are run.
 
-[ Graphs showing LRP distribution during failure ]
+![Cell Distribution During Partial Failure](https://github.com/jfmyers9/blogs/raw/master/diego-perf/images/cell-distribution.png "Cell Distribution During Partial Failure")
 
 During our partial failure tests (killing 5 random nodes in the deployment), we see that Diego successfully recognizes which LRP instances were missing and eventually corrects the problem by moving these applications to other cells in the deployment until all of the available space is filled.
 
-[ Graphs showing LRP numbers during ETCD failure ]
+![Number of LRPs ETCD Failure](https://github.com/jfmyers9/blogs/raw/master/diego-perf/images/num-lrps-etcd-failure.png "Number of LRPs ETCD Failure")
 
-We also see that in case of a total failure (killing the entire database cluster), Diego was able to recover and re-populate the database within a small amount of time.
+We also see that in case of a total failure (killing the entire database cluster), Diego was able to recover and re-populate the database within a small amount of time (about 15 minutes).
 
-[ Graphs showing total number of routes ]
+![Number of LRP Routes ETCD Failure](https://github.com/jfmyers9/blogs/raw/master/diego-perf/images/num-routes-etcd-failure.png "Number of LRP Routes ETCD Failure")
 
 During the total failure simulation, we did notice that our total number of routes dropped to a much lower number throughout the failure, rather than maintaining the original number of routes throughout the outage.
 We have since determined that this was due to us incorrectly disregarding the completeness of the dataset retrieved from our database, and have corrected the problem in future releases.
