@@ -7,7 +7,7 @@ of the software that they are deploying.  One side effect of this generic interf
 of bash scripts as a bootstrapping and launching mechanism for jobs.  While bash enables a developer with
 a broad amount of power to perform all of the necessary actions to bootstrap their software,
 it has proven to be difficult to test reliably and is prone to bugs, many of which have both security and performance implications.
-Over the past week, [Chris Brown](https://github.com/xoebus) and I have been working on defining
+Over the past week, [Christopher Brown](https://github.com/xoebus) and I have been working on defining
 a reduced interface for BOSH jobs that will relieve some of this responsibility from the developer,
 and hopefully results in a safer and more stable job definitions through BOSH.
 
