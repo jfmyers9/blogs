@@ -90,3 +90,6 @@ bootstrapping needs. We may not be able to predict the needs and dependencies of
 cases a job will need setup that is outside of the scope of the interface that Crucible provides. How a tool
 like crucible deals with situations like these is still an unknown, and it may in fact not be feasible to
 use crucible as a generic solution to all BOSH jobs.
+
+Despite these edge cases, Crucible provides a secure and well tested interface for BOSH job developers and
+a standard and consistent experience for BOSH job operators.
