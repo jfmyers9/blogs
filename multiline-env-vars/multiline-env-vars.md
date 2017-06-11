@@ -1,3 +1,5 @@
+# Multiline Environment Variables
+
 A few days ago I found myself in a situation in which I needed to provide
 credentials to an application through environment variables.  One set of
 credentials needed were certificate and key files to be used for mutual auth
@@ -39,6 +41,6 @@ rather than keeping the original structure.  It seems painfully obvious now,
 but one should always be careful about using environment variables in bash as
 the actual contents of the environment variable can cause wildly different
 behavior.  Hopefully this insight will save someone the time that I spent
-debugging a mysterious issue in the future.
+debugging this mysterious issue in the future.
 
 [Comments](https://github.com/jfmyers9/blogs/issues/3)
