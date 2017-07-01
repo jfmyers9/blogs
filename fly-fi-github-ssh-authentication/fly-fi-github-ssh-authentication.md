@@ -1,4 +1,4 @@
-# SSH Authentication with Github on Fly Fi
+# SSH Authentication with Github on Fly-Fi
 
 *Disclaimer*: JetBlue is awesome for offering Fly-Fi free of charge on domestic
 flights in the USA.  They are miles ahead of any other airline in this area, so
@@ -42,13 +42,13 @@ One specific `ssh_config` option that caught my eye was:
 
 ```
 ProxyJump
-			 Specifies one or more jump proxies as [user@]host[:port].  Multiple proxies may be separated by
-			 comma characters and will be visited sequentially.  Setting this option will cause ssh(1) to con‐
-			 nect to the target host by first making a ssh(1) connection to the specified ProxyJump host and
-			 then establishing a TCP forwarding to the ultimate target from there.
+  Specifies one or more jump proxies as [user@]host[:port].  Multiple proxies may be separated by
+  comma characters and will be visited sequentially.  Setting this option will cause ssh(1) to con‐
+  nect to the target host by first making a ssh(1) connection to the specified ProxyJump host and
+  then establishing a TCP forwarding to the ultimate target from there.
 
-			 Note that this option will compete with the ProxyCommand option - whichever is specified first
-			 will prevent later instances of the other from taking effect.
+  Note that this option will compete with the ProxyCommand option - whichever is specified first
+  will prevent later instances of the other from taking effect.
 ```
 
 Essentially, this option allows a user to proxy all SSH traffic through a
