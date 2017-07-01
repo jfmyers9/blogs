@@ -33,7 +33,12 @@ obvious way to achieve this would be to use a traditional VPN that would be
 accessible on one of the following ports to tunnel traffic through.
 Unfortunately, I did not have access to such a VPN at the time of my flight.
 
-After some searching, one specific `ssh_config` option that caught my eye was:
+I did however notice that one of my non traditional VPN configurations which only 
+allowed me access to machines on the private network was working as it was able 
+to initialize through one of the open ports above. 
+
+Knowing this, I began to explore how to leverage the power of SSH to bypass these restrictions. 
+One specific `ssh_config` option that caught my eye was:
 
 ```
 ProxyJump
@@ -49,8 +54,7 @@ ProxyJump
 Essentially, this option allows a user to proxy all SSH traffic through a
 separate SSH connection.
 
-Knowing this, I fired up my non traditional VPN which would only allow me SSH
-access to machines on the private network, and quickly validated that in fact I
+Knowing this, I fired up my non traditional VPN and quickly validated that in fact I
 was able to ssh into some of my personal machines. I was pleasantly surprised
 to eventually arrive at following:
 
